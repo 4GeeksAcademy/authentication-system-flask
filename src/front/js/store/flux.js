@@ -1,6 +1,7 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
+			user: null,
 			message: null,
 			demo: [
 				{
@@ -46,6 +47,69 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 				//reset the global store
 				setStore({ demo: demo });
+			},
+
+			userLogin: async(email, password) => {
+				try{
+					// fetching data from the backend
+					const resp = await fetch(process.env.BACKEND_URL + "/api/login",{
+						method:"POST",
+						headers: {
+							"Content-type" : "application/json"
+
+						},
+						body: JSON.stringify({ email, password })
+					});
+					
+					const data = await resp.json();
+
+					if (!resp.ok) {
+						throw new Error(data.msg || "Failed to log in.");
+					}
+					
+					sessionStorage.setItem("accessToken", data.token);
+					// don't forget to return something, that is how the async resolves
+					return data;
+				}catch(error){
+					console.log("Failed to log in.", error)
+					throw error;
+				}
+			},
+
+			userRegister: async(email, password) => {
+				try{
+					// fetching data from the backend
+					const resp = await fetch(process.env.BACKEND_URL + "/api/register",{
+						method:"POST",
+						headers: {
+							"Content-type" : "application/json"
+
+						},
+						body: JSON.stringify({ email, password })
+					});
+					
+					const data = await resp.json();
+
+					if (!resp.ok) {
+						throw new Error(data.msg || "Failed to register.");
+					}
+					
+					// don't forget to return something, that is how the async resolves
+					return data;
+				}catch(error){
+					console.log("Failed to register.", error)
+					throw error;
+				}
+			},
+
+			userLogout: () => {
+				try {
+					sessionStorage.removeItem("accessToken");
+					setStore({ user: null });
+				} catch (error) {
+					console.error("Failed to log out", error);
+					throw error;
+				}
 			}
 		}
 	};
