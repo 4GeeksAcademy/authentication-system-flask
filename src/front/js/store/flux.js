@@ -110,6 +110,37 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error("Failed to log out", error);
 					throw error;
 				}
+			},
+
+			userPrivate: async () =>{
+				try {
+					const token = sessionStorage.getItem("accessToken")
+					if (!token) {
+						throw new Error ("Access token missing.");
+					}
+					const resp = await fetch(process.env.BACKEND_URL + "/api/private", {
+						method : "GET",
+						headers: {
+							Authorization: `Bearer ${token}`
+						}
+					});
+
+					const data = await resp.json();
+
+					if(!resp.ok){
+						throw new Error(data.msg || "Failed to obtain protected data.");
+					}
+
+					const {user} = getStore();
+
+					if(JSON.stringify(user) !== JSON.stringify(data)){
+						setStore({user: data});
+						console.log("User data updated on the storage.", data)
+					}
+				} catch (error) {
+					console.error("Failed to obtain protected data.", error);
+					throw error;
+				}
 			}
 		}
 	};
